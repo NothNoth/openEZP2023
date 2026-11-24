@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>EZP2023+ programmer</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect x='3' y='2' width='10' height='12' rx='1' fill='%231F5FBF'/></svg>">
+<style>
+@font-face { font-family: "IBM Plex Sans"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/ibm-plex-sans-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "IBM Plex Sans"; font-style: normal; font-weight: 500; font-display: swap; src: url("fonts/ibm-plex-sans-latin-500-normal.woff2") format("woff2"); }
+@font-face { font-family: "IBM Plex Sans"; font-style: normal; font-weight: 600; font-display: swap; src: url("fonts/ibm-plex-sans-latin-600-normal.woff2") format("woff2"); }
+@font-face { font-family: "IBM Plex Mono"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/ibm-plex-mono-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "IBM Plex Mono"; font-style: normal; font-weight: 500; font-display: swap; src: url("fonts/ibm-plex-mono-latin-500-normal.woff2") format("woff2"); }
+:root {
+  color-scheme: light;
+  --base: #EEF1F4;
+  --panel: #FFFFFF;
+  --sunken: #F6F8FA;
+  --line: #D5DBE2;
+  --ink: #18212B;
+  --muted: #5B6875;
+  --signal: #1F5FBF;
+  --signal-ink: #FFFFFF;
+  --ok: #1E7F4F;
+  --err: #B8322A;
+  --map-empty: #E2E7ED;
+  --warn-bg: #FFF4DB;
+  --warn-line: #E2B95A;
+  --warn-ink: #6E4700;
+  --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --base: #12171D;
+    --panel: #1A2129;
+    --sunken: #151B22;
+    --line: #2C3641;
+    --ink: #E4E9EF;
+    --muted: #93A0AE;
+    --signal: #78A6FF;
+    --signal-ink: #0E1620;
+    --ok: #4CC38A;
+    --err: #FF7A6E;
+    --map-empty: #232C36;
+    --warn-bg: #2A2312;
+    --warn-line: #6B5420;
+    --warn-ink: #F2C877;
+  }
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--base);
+  color: var(--ink);
+  font: 15px/1.5 var(--sans);
+  padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0) env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0);
+}
+button, input, select { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }
+
+header {
+  display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+  padding: .75rem 1.25rem; border-bottom: 1px solid var(--line); background: var(--panel);
+}
+header h1 { font-size: 1.125rem; font-weight: 600; margin: 0; letter-spacing: -.01em; }
+.status { display: flex; align-items: center; gap: .5rem; color: var(--muted); flex: 1; min-width: 12rem; }
+.status::before { content: ""; width: .625rem; height: .625rem; border-radius: 50%; background: var(--line); flex: none; }
+.status.on { color: var(--ink); }
+.status.on::before { background: var(--ok); }
+.header-actions { display: flex; gap: .5rem; flex-wrap: wrap; }
+
+button {
+  border: 1px solid var(--line); background: var(--panel); border-radius: 6px;
+  padding: .4rem .85rem; cursor: pointer;
+}
+button:hover:not(:disabled) { border-color: var(--muted); }
+button:disabled { opacity: .45; cursor: not-allowed; }
+button.primary { background: var(--signal); border-color: var(--signal); color: var(--signal-ink); font-weight: 500; }
+
+main {
+  display: grid; grid-template-columns: minmax(16rem, 21rem) 1fr; gap: 1.25rem;
+  padding: 1.25rem; max-width: 84rem; margin: 0 auto;
+}
+@media (max-width: 52rem) { main { grid-template-columns: 1fr; } }
+section { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 1rem; min-width: 0; }
+section h2 { font-size: .95rem; font-weight: 600; margin: 0 0 .75rem; }
+.stack { display: grid; gap: 1.25rem; align-content: start; min-width: 0; }
+
+/* Chip picker */
+#search { width: 100%; padding: .45rem .6rem; border: 1px solid var(--line); border-radius: 6px; background: var(--sunken); }
+#chiplist { list-style: none; margin: .5rem 0 0; padding: 0; height: 16rem; overflow-y: auto; border: 1px solid var(--line); border-radius: 6px; }
+#chiplist li { padding: .3rem .6rem; cursor: pointer; display: flex; justify-content: space-between; gap: .5rem; border-bottom: 1px solid var(--line); }
+#chiplist li:last-child { border-bottom: 0; }
+#chiplist li:hover { background: var(--sunken); }
+#chiplist li[aria-selected="true"] { background: var(--signal); color: var(--signal-ink); }
+#chiplist li small { color: inherit; opacity: .7; white-space: nowrap; }
+.more { color: var(--muted); font-size: .85rem; margin: .4rem 0 0; }
+dl.chip { display: grid; grid-template-columns: auto 1fr; gap: .2rem 1rem; margin: 0; }
+dl.chip dt { color: var(--muted); }
+dl.chip dd { margin: 0; }
+.mono { font-family: var(--mono); font-size: .9em; }
+.chip-name { font-size: 1.25rem; font-weight: 600; margin: 0 0 .5rem; line-height: 1.25; }
+.field { display: grid; gap: .3rem; margin-top: .9rem; }
+.field label { color: var(--muted); font-size: .9rem; }
+select { padding: .35rem .5rem; border: 1px solid var(--line); border-radius: 6px; background: var(--sunken); }
+.check { display: flex; gap: .5rem; align-items: baseline; margin-top: .6rem; font-size: .92rem; }
+
+/* Actions */
+.actions { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+.actions .sep { width: 1px; align-self: stretch; background: var(--line); margin: 0 .25rem; }
+.options { display: flex; flex-wrap: wrap; gap: 0 1.25rem; }
+
+/* Memory map */
+.map { margin-top: 1rem; }
+.map-bar {
+  position: relative; height: 2.25rem; border-radius: 4px; overflow: hidden;
+  background: repeating-linear-gradient(90deg, var(--map-empty) 0 calc(6.25% - 1px), var(--panel) calc(6.25% - 1px) 6.25%);
+}
+.map-fill { position: absolute; inset: 0 auto 0 0; width: 0; background: var(--signal); }
+.map-bar.ok .map-fill { background: var(--ok); }
+.map-bar.err .map-fill { background: var(--err); }
+.map-axis { display: flex; justify-content: space-between; font-family: var(--mono); font-size: .8rem; color: var(--muted); margin-top: .3rem; }
+.map-now { color: var(--ink); }
+.map-caption { margin: .5rem 0 0; min-height: 1.5em; }
+@media (prefers-reduced-motion: no-preference) { .map-fill { transition: width .12s linear; } }
+
+/* Buffer */
+.buffer-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: .5rem 1rem; margin-bottom: .75rem; }
+.buffer-head h2 { margin: 0; }
+.buffer-head .meta { color: var(--muted); flex: 1; }
+#hex {
+  height: 20rem; overflow: auto; font-family: var(--mono); font-size: .82rem; line-height: 1.5rem;
+  background: var(--sunken); border: 1px solid var(--line); border-radius: 6px; position: relative;
+}
+#hex .spacer { position: relative; }
+#hex pre { margin: 0; position: absolute; left: 0; right: 0; padding: 0 .75rem; white-space: pre; }
+#hex .addr { color: var(--muted); }
+#hex .ff { color: var(--muted); opacity: .55; }
+.empty { color: var(--muted); padding: 1rem .75rem; font-family: var(--sans); font-size: .95rem; position: static !important; white-space: normal !important; }
+
+/* Log */
+#log { list-style: none; margin: 0; padding: 0; max-height: 11rem; overflow-y: auto; font-size: .92rem; }
+#log li { display: grid; grid-template-columns: 5.5rem 1fr; gap: .5rem; padding: .15rem 0; }
+#log time { font-family: var(--mono); font-size: .82rem; color: var(--muted); padding-top: .1rem; }
+#log li.err span { color: var(--err); }
+#log li.ok span { color: var(--ok); }
+
+.warn {
+  background: var(--warn-bg); border: 1px solid var(--warn-line); color: var(--warn-ink);
+  border-radius: 6px; padding: .6rem .75rem; margin: .75rem 0 0; font-size: .92rem;
+}
+.warn strong { font-weight: 600; }
+.ops-warn { margin: 0 0 .85rem; }
+.badge {
+  font-size: .75rem; font-weight: 500; padding: 0 .35rem; border-radius: 4px; margin-left: .35rem;
+  background: var(--warn-bg); color: var(--warn-ink); border: 1px solid var(--warn-line); white-space: nowrap;
+}
+#chiplist li[aria-selected="true"] .badge { background: transparent; color: inherit; border-color: currentColor; }
+.note { color: var(--muted); font-size: .9rem; margin: .75rem 0 0; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+</style>
+</head>
+<body>
+<header>
+  <h1>EZP2023+</h1>
+  <div id="status" class="status" role="status">Loading…</div>
+  <div class="header-actions">
+    <button id="connect" class="primary" disabled>Connect programmer</button>
+    <button id="demo" disabled>Try without hardware</button>
+    <button id="disconnect" hidden>Disconnect</button>
+  </div>
+</header>
+
+<main>
+  <div class="stack">
+    <section aria-labelledby="chip-h">
+      <h2 id="chip-h">Chip</h2>
+      <label class="visually-hidden" for="search">Search chips</label>
+      <input id="search" type="search" placeholder="Search by model, vendor or JEDEC ID" autocomplete="off">
+      <ul id="chiplist" role="listbox" aria-label="Chips" tabindex="0"></ul>
+      <p id="more" class="more"></p>
+    </section>
+
+    <section aria-labelledby="sel-h">
+      <h2 id="sel-h" class="visually-hidden">Selected chip</h2>
+      <p id="chip-name" class="chip-name">No chip selected</p>
+      <dl class="chip" id="chip-details"></dl>
+      <p class="warn" id="chip-warn" role="note" hidden><strong>Use the 1.8&nbsp;V adapter.</strong> This chip runs at 1.8&nbsp;V and the programmer supplies 3.3&nbsp;V: inserted directly in the socket or clip, it can be damaged, even by a simple Detect.</p>
+      <div class="field">
+        <label for="clock">SPI clock</label>
+        <select id="clock"></select>
+      </div>
+      <label class="check"><input type="checkbox" id="fastread"> Read in 64 KB transfers (faster; not yet tested on hardware)</label>
+    </section>
+  </div>
+
+  <div class="stack">
+    <section aria-labelledby="ops-h">
+      <h2 id="ops-h">Operations</h2>
+      <p class="warn ops-warn" id="ops-warn" hidden><strong>1.8 V chip:</strong> check that it sits in the 1.8&nbsp;V adapter before running any operation.</p>
+      <div class="actions">
+        <button data-op="detect">Detect</button>
+        <button data-op="read">Read</button>
+        <span class="sep" aria-hidden="true"></span>
+        <button data-op="erase">Erase</button>
+        <button data-op="blank">Blank check</button>
+        <span class="sep" aria-hidden="true"></span>
+        <button data-op="write">Write</button>
+        <button data-op="verify">Verify</button>
+        <span class="sep" aria-hidden="true"></span>
+        <button id="cancel" disabled>Cancel</button>
+      </div>
+      <div class="options">
+        <label class="check"><input type="checkbox" id="erase-first" checked> Erase before writing</label>
+        <label class="check"><input type="checkbox" id="verify-after" checked> Verify after writing</label>
+      </div>
+
+      <div class="map" aria-hidden="true">
+        <div class="map-bar" id="map"><div class="map-fill" id="map-fill"></div></div>
+        <div class="map-axis"><span id="map-start">0x000000</span><span id="map-now" class="map-now"></span><span id="map-end">—</span></div>
+      </div>
+      <p class="map-caption" id="caption" aria-live="polite">Select a chip, then connect the programmer.</p>
+    </section>
+
+    <section aria-labelledby="buf-h">
+      <div class="buffer-head">
+        <h2 id="buf-h">Image</h2>
+        <span class="meta" id="buf-meta">Empty</span>
+        <button id="open">Open file…</button>
+        <button id="save" disabled>Save to file…</button>
+        <input type="file" id="file" hidden>
+      </div>
+      <div id="hex" tabindex="0" aria-label="Image contents in hexadecimal"><div class="spacer" id="hex-spacer"></div></div>
+    </section>
+
+    <section aria-labelledby="log-h">
+      <h2 id="log-h">Activity</h2>
+      <ul id="log"></ul>
+      <p class="note">WebUSB works in Chrome, Edge and Opera. On Linux, add the udev rule from the README; on Windows, switch the programmer to the WinUSB driver with Zadig.</p>
+    </section>
+  </div>
+</main>
+
+<script src="wasm_exec.js?v=12a3c78c18"></script>
+<script src="app.js?v=12a3c78c18"></script>
+</body>
+</html>
