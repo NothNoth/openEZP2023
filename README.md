@@ -46,6 +46,11 @@ Simply run:
 
 and connect to http://127.0.0.1:8000/ (using a webUSB compatible browser).
 
+If you've downloaded the Release zip archive file, extract it then run:
+
+    cd openezp2023-v1.0.0
+    python3 -m http.server 8000 --bind 127.0.0.1 -d .
+
 
 ## Hosting on a web server
 
