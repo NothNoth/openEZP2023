@@ -11,7 +11,7 @@ to WebAssembly and driven from the browser through WebUSB.
 
 The protocol was reverse-engineered statically from the vendor software
 (`EZP2023+.exe` v3.0). See [docs/PROTOCOL.md](docs/PROTOCOL.md).
-**It has not been tested on real hardware yet.**
+**It has not been fully tested on real hardware yet.**
 
 ## Layout
 
