@@ -326,6 +326,8 @@ func main() {
 			o := js.Global().Get("Object").New()
 			o.Set("bus", int(r.Bus))
 			o.Set("busName", busName(r.Bus))
+			o.Set("signatureOK", r.SignatureOK)
+			o.Set("signature", fmt.Sprintf("%08X", r.Signature))
 			matches := js.Global().Get("Array").New()
 			if r.Bus == ezp.BusSPI {
 				o.Set("jedec", fmt.Sprintf("%06X", r.JEDEC))

@@ -218,6 +218,11 @@ async function opDetect() {
   return busy("Detect", async () => {
     $("caption").textContent = "Detecting…";
     const r = await ezp.detect(state.chip ? state.chip.index : undefined);
+    if (!r.signatureOK) {
+      // Seen as 9A7336BD on real hardware. A different value means the reply
+      // is garbled or out of step, or the hardware revision was misidentified.
+      log(`Unexpected reply from the programmer (signature ${r.signature}, expected 9A7336BD). Results may be wrong; unplug and reconnect the programmer, and report this if it persists.`, "err");
+    }
     if (r.bus === 0) {
       mapResult("err", "No chip answered. Check the chip orientation in the socket or clip, and that the right adapter is used.");
       log("Detect: no chip answered", "err");

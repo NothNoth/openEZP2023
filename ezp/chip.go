@@ -69,9 +69,12 @@ const RecordSize = 68
 //	+0x3A u8        protocol
 //	+0x3B u8        sub-type (address width / 93xx organisation / SST quirk)
 //	+0x3C u16       timing (SPI flash: erase timeout in 50 ms ticks)
-//	+0x3E u16       unused by the host
-//	+0x40 [3]byte   editor fields not used by the host
+//	+0x3E u16       "extend" (chip editor; not used by the host)
+//	+0x40 u16       "eeprom" (chip editor; not used by the host)
+//	+0x42 u8        "eeprom page" (chip editor; not used by the host)
 //	+0x43 u8        supply voltage (0 = 3.3 V, 1 = 1.8 V, 2 = 5 V)
+//
+// The editor field names come from libezp2023plus (see docs/PROTOCOL.md).
 type Chip struct {
 	Index    int
 	Type     string
@@ -84,14 +87,18 @@ type Chip struct {
 	Sub      uint8
 	Timing   uint16
 	Voltage  Voltage
-	Flags    [3]byte // +0x40..+0x42, not used by the host
+
+	// Chip editor fields, kept for completeness; never sent to the device.
+	Extend     uint16
+	EEPROM     uint16
+	EEPROMPage uint8
 }
 
 // prefixes18V are 1.8 V SPI flash families that the vendor database does
 // not mark as such (neither in the voltage byte nor in the name).
 // (No regexp: the package adds about 500 KB to the WebAssembly build.)
 var prefixes18V = []string{
-	"MX25U", "MX25R", "GD25LQ", "GD25LB", "GD25LE", "SST25WF", "SST26WF",
+	"MX25U", "MX25R", "MX66U", "GD25LQ", "GD25LB", "GD25LE", "SST25WF", "SST26WF",
 	"ZB25LQ", "FM25M", "EN25S", "IS25W", "AT25SL", "MT25QU", "XM25QU",
 }
 
@@ -172,8 +179,11 @@ func parseRecord(r []byte, index int) (Chip, bool) {
 		Sub:      r[0x3B],
 		Timing:   le.Uint16(r[0x3C:]),
 		Voltage:  Voltage(r[0x43]),
+
+		Extend:     le.Uint16(r[0x3E:]),
+		EEPROM:     le.Uint16(r[0x40:]),
+		EEPROMPage: r[0x42],
 	}
-	copy(c.Flags[:], r[0x40:0x43])
 	return c, true
 }
 

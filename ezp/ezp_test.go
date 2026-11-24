@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"os"
 	"testing"
+	"time"
 
 	"ezp2023/ezp"
 	"ezp2023/ezpmock"
@@ -39,7 +40,7 @@ func chip(t *testing.T, chips []ezp.Chip, model string) *ezp.Chip {
 
 func fast(t ezp.Transport) *ezp.Programmer {
 	p := ezp.New(t)
-	p.ReplyDelay = 0
+	p.PollInterval = time.Millisecond
 	return p
 }
 
@@ -92,6 +93,7 @@ func TestVoltage(t *testing.T) {
 		"W25Q64JV": false, "W25Q128FV": false, "W25Q80DV": false, "W25Q64": false,
 		"BY25Q32AL": true, "BY25Q32BS": false, "BY25Q16": false,
 		"MX25U6435F": true, "MX25L6406E": false, "GD25Q64": false,
+		"MX66U51235F": true, "MX66L51235F": false,
 	}
 	for model, want := range families {
 		if got := (&ezp.Chip{Model: model}).Needs18VAdapter(); got != want {
@@ -137,6 +139,22 @@ func TestDetect(t *testing.T) {
 		if last := d.Log[len(d.Log)-1]; last[1] != ezp.OpEndSession {
 			t.Fatal("detect did not end the session")
 		}
+		if !r.SignatureOK || r.Signature != ezp.DetectSignature {
+			t.Fatalf("signature not recognised: %#x", r.Signature)
+		}
+	}
+	d := ezpmock.New(ezp.RevA, ezp.BusSPI, 0xEF4018, 1024)
+	d.NoSignature = true
+	r, err := fast(d).Detect(context.Background(), nil)
+	if err != nil || r.SignatureOK {
+		t.Fatalf("missing signature not reported: %+v %v", r, err)
+	}
+}
+
+func TestDefaultTimings(t *testing.T) {
+	p := ezp.New(ezpmock.New(ezp.RevA, ezp.BusSPI, 0, 16))
+	if p.ReplyDelay != 0 || p.PollInterval != 100*time.Millisecond {
+		t.Fatalf("ReplyDelay=%v PollInterval=%v", p.ReplyDelay, p.PollInterval)
 	}
 }
 

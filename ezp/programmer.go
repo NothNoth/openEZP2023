@@ -25,11 +25,21 @@ const (
 	BusMicrowire = 3
 )
 
+// DetectSignature is the constant the firmware puts in bytes 60..63 of the
+// 0x09 reply (big-endian), as observed on real hardware by libezp2023plus.
+// The vendor software does not check it.
+const DetectSignature = 0x9A7336BD
+
 // DetectResult is the decoded reply of the 0x09 command.
 type DetectResult struct {
 	Bus   byte   // BusNone, BusSPI, BusI2C or BusMicrowire
 	JEDEC uint32 // only meaningful when Bus == BusSPI
-	Raw   []byte // the full 64-byte reply
+	// Signature is bytes 60..63 of the reply. SignatureOK is false when it
+	// differs from DetectSignature: the reply may be garbled, out of step,
+	// or the hardware revision may have been misidentified.
+	Signature   uint32
+	SignatureOK bool
+	Raw         []byte // the full 64-byte reply
 }
 
 // Programmer drives an EZP2023+ over a Transport. It is not safe for
@@ -38,8 +48,16 @@ type Programmer struct {
 	T     Transport
 	Clock SPIClock
 
-	// ReplyDelay is the wait between a command and its reply (vendor: 50 ms).
+	// ReplyDelay is an optional wait between a command and reading its
+	// reply. The vendor software waits 50 ms, but the read blocks until the
+	// reply arrives anyway (libezp2023plus reads immediately on real
+	// hardware), so the default is 0.
 	ReplyDelay time.Duration
+	// PollInterval is the wait between two status polls while erasing.
+	// The vendor loop takes 100 ms per poll (50 ms sleep + its 50 ms reply
+	// delay), and the chip's Timing field counts polls, so this keeps the
+	// vendor's erase timeout: Timing × 100 ms.
+	PollInterval time.Duration
 	// ReadChunk overrides the bulk read size. 0 = vendor behaviour
 	// (page size, minimum 64). Larger values are much faster over WebUSB
 	// but untested on real hardware.
@@ -48,9 +66,9 @@ type Programmer struct {
 	Progress ProgressFunc
 }
 
-// New returns a Programmer with the vendor timings.
+// New returns a Programmer with the default timings.
 func New(t Transport) *Programmer {
-	return &Programmer{T: t, ReplyDelay: 50 * time.Millisecond}
+	return &Programmer{T: t, PollInterval: 100 * time.Millisecond}
 }
 
 func (p *Programmer) rev() Revision { return p.T.Revision() }
@@ -147,7 +165,8 @@ func (p *Programmer) Detect(ctx context.Context, c *Chip) (DetectResult, error) 
 	if err := p.endSession(ctx); err != nil {
 		return DetectResult{}, err
 	}
-	res := DetectResult{Bus: r[0], Raw: r}
+	sig := uint32(r[60])<<24 | uint32(r[61])<<16 | uint32(r[62])<<8 | uint32(r[63])
+	res := DetectResult{Bus: r[0], Raw: r, Signature: sig, SignatureOK: sig == DetectSignature}
 	if res.Bus == BusSPI {
 		res.JEDEC = uint32(r[1])<<16 | uint32(r[2])<<8 | uint32(r[3])
 	}
@@ -368,7 +387,7 @@ func (p *Programmer) Erase(ctx context.Context, c *Chip) error {
 			}
 			limit := int(c.Timing)
 			for i := 0; ; i++ {
-				if err := sleep(ctx, 50*time.Millisecond); err != nil {
+				if err := sleep(ctx, p.PollInterval); err != nil {
 					return err
 				}
 				r, err := p.Command(ctx, StatusPacket(), true)

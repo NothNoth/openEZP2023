@@ -26,6 +26,8 @@ type Device struct {
 
 	// ErasePolls is how many status polls report busy after a chip erase.
 	ErasePolls int
+	// NoSignature makes the 0x09 reply omit the firmware signature.
+	NoSignature bool
 
 	page      int
 	proto     ezp.Protocol
@@ -95,6 +97,9 @@ func (d *Device) WriteCommand(p []byte) error {
 		if d.Bus != 0 {
 			r[0] = d.Bus
 			r[1], r[2], r[3] = byte(d.JEDEC>>16), byte(d.JEDEC>>8), byte(d.JEDEC)
+		}
+		if !d.NoSignature {
+			binary.BigEndian.PutUint32(r[60:], ezp.DetectSignature)
 		}
 		d.reply = r
 	case ezp.OpStream:

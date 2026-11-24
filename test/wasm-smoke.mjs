@@ -27,10 +27,12 @@ check(ezp.chips.length > 900, `chip database loaded (${ezp.chips.length} chips)`
 const chip = ezp.chips.find((c) => c.model === "W25Q80");
 check(chip && chip.jedec === "EF4014", "W25Q80 present with its JEDEC ID");
 check(ezp.chips.find((c) => c.model === "MX25U3235F")?.needs18V === true, "1.8 V detection exported");
+check(ezp.chips.find((c) => c.model === "MX66U51235F")?.needs18V === true, "MX66U family flagged 1.8 V");
 
 await ezp.connectDemo(chip.index);
 const d = await ezp.detect();
 check(d.jedec === "EF4014" && d.matches.includes(chip.index), "detect finds the chip");
+check(d.signatureOK && d.signature === "9A7336BD", "detect checks the firmware signature");
 await ezp.erase(chip.index);
 check((await ezp.blankCheck(chip.index)).ok, "blank after erase");
 const img = new Uint8Array(100000).map((_, i) => (i * 31) & 0xff);
