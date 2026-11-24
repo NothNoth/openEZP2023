@@ -63,7 +63,7 @@ jobs:
 
       - name: Package
         run: |
-          name="ezp2023-${GITHUB_REF_NAME}"
+          name="openEZP2023-${GITHUB_REF_NAME}"
           (cd dist && zip -qr "../${name}.zip" .)
           sha256sum "${name}.zip" > "${name}.zip.sha256"
           echo "ASSET=${name}.zip" >> "$GITHUB_ENV"
