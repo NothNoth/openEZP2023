@@ -1,6 +1,11 @@
-# ezp2023
+# openEZP2023
 
-A cross-platform replacement for the Windows-only EZP2023+ programmer
+_Note: I was bored of running a Windows VM to run my EZP2023+ programmer software, so I asked Claude to recreate it.
+I take no pride in it, it just works. Sometimes that's all you want._
+
+![openZEP2023.png](./openZEP2023.png)
+
+A cross-platform replacement for the Windows-only **EZP2023+** programmer
 software: a Go package that speaks the programmer's USB protocol, compiled
 to WebAssembly and driven from the browser through WebUSB.
 
@@ -33,6 +38,15 @@ make        # builds web/ezp.wasm and bin/ezp-serve (local use)
 make test   # unit tests against the simulated firmware
 ```
 
+## Running locally
+
+Simply run:
+
+    python3 -m http.server 8000 --bind 127.0.0.1 -d dist
+
+and connect to http://127.0.0.1:8000/ (using a webUSB compatible browser).
+
+
 ## Hosting on a web server
 
 The tool is a static site: nothing runs on the server, all USB traffic
@@ -54,19 +68,6 @@ web server (Apache, nginx, shared hosting, GitHub Pages, Netlify, S3...).
   (IBM Plex, SIL Open Font License, see `fonts/OFL-LICENSE.txt`).
 - If you embed the page in an `<iframe>`, add `allow="usb"` to it.
 - Opening `index.html` directly from disk (`file://`) does not work.
-
-## Running locally
-
-```sh
-make && ./bin/ezp-serve   # then open http://127.0.0.1:8023
-```
-
-Or serve `dist/` with any local server, e.g.
-`python3 -m http.server -d dist 8023`.
-
-**Try without hardware** in the UI connects a simulated programmer holding
-the selected chip, so the whole flow can be exercised before the device
-arrives.
 
 ## Operating system setup
 
@@ -107,8 +108,6 @@ ezp.cancel(); ezp.setClock(0..5); ezp.setReadChunk(bytes)
 
 ## Known gaps
 
-- Nothing has run against a real EZP2023+ yet. The first things to check
-  with hardware are listed at the end of `docs/PROTOCOL.md`.
 - `Write` follows the vendor software: it does not erase by itself (the UI
   offers "Erase before writing") and skips trailing `0xFF` bytes.
 - Reading uses page-sized transfers like the vendor software. The UI option
