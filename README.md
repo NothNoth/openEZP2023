@@ -17,10 +17,11 @@ The protocol was reverse-engineered statically from the vendor software
 
 | Path | What it is |
 |---|---|
-| `ezp/` | Core package: chip database, packet encoding, `Programmer` (detect, read, erase, blank check, write, verify). No dependencies, no I/O of its own. |
+| `ezp/` | Core package: chip database (`ezp/chips.json`, embedded), packet encoding, `Programmer` (detect, read, erase, blank check, write, verify). No dependencies, no I/O of its own. |
 | `ezpmock/` | Simulated programmer firmware. Used by the tests and by the UI's demo mode. |
 | `webusb/` | `ezp.Transport` over the browser WebUSB API (`js/wasm` only). |
-| `cmd/ezp-wasm/` | WASM entry point. Exposes a Promise-based `globalThis.ezp` API to JavaScript and embeds the chip database. |
+| `cmd/ezp-wasm/` | WASM entry point. Exposes a Promise-based `globalThis.ezp` API to JavaScript. |
+| `cmd/ezp-dat2json/` | Converts the vendor `EZP2023+.Dat` to `chips.json` format. |
 | `web/` | The browser UI (`index.html`, `app.js`) plus the built `ezp.wasm`. |
 | `cmd/ezp-serve/` | Optional: single binary that serves the UI on `http://127.0.0.1:8023`. |
 | `deploy/` | Web server configuration (Apache `.htaccess`, nginx). |
@@ -117,6 +118,7 @@ ezp.cancel(); ezp.setClock(0..5); ezp.setReadChunk(bytes)
   offers "Erase before writing") and skips trailing `0xFF` bytes.
 - Reading uses page-sized transfers like the vendor software. The UI option
   "Read in 64 KB transfers" is much faster over WebUSB but is a guess.
-- `ezp.wasm` embeds the vendor's chip database (`EZP2023+.Dat`). Check its
-  licence before hosting the tool publicly; a private or
-  password-protected location avoids the question.
+- The chip list in `ezp/chips.json` was converted from the vendor's
+  database (`EZP2023+.Dat`); the `.Dat` file itself is not distributed.
+  To import a newer `.Dat` from the Windows software:
+  `go run ./cmd/ezp-dat2json EZP2023+.Dat > ezp/chips.json`.

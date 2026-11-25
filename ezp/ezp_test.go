@@ -6,7 +6,6 @@ import (
 	"encoding/binary"
 	"errors"
 	"math/rand"
-	"os"
 	"testing"
 	"time"
 
@@ -16,11 +15,7 @@ import (
 
 func loadChips(t *testing.T) []ezp.Chip {
 	t.Helper()
-	b, err := os.ReadFile("testdata/chips.dat")
-	if err != nil {
-		t.Fatal(err)
-	}
-	chips, err := ezp.ParseDat(b)
+	chips, err := ezp.Chips()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -44,7 +39,7 @@ func fast(t ezp.Transport) *ezp.Programmer {
 	return p
 }
 
-func TestParseDat(t *testing.T) {
+func TestChipDatabase(t *testing.T) {
 	chips := loadChips(t)
 	if len(chips) != 948 {
 		t.Fatalf("got %d chips", len(chips))

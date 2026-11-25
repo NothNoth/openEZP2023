@@ -439,7 +439,7 @@ async function start() {
 }
 
 // ---------- boot ----------
-const WASM_URL = "ezp.wasm?v=c5f06cbe4f";
+const WASM_URL = "ezp.wasm?v=ac04ceae54";
 
 // instantiateStreaming needs the server to send "application/wasm"; many
 // shared hosts don't, so fall back to a plain download in that case.

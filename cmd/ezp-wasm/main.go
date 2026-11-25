@@ -1,12 +1,12 @@
 //go:build js && wasm
 
 // Command ezp-wasm exposes the ezp package to JavaScript as globalThis.ezp.
+// The chip list comes from the database built into the ezp package.
 // Every operation returns a Promise; only one operation runs at a time.
 package main
 
 import (
 	"context"
-	_ "embed"
 	"errors"
 	"fmt"
 	"sync"
@@ -16,9 +16,6 @@ import (
 	"ezp2023/ezpmock"
 	"ezp2023/webusb"
 )
-
-//go:embed chips.dat
-var chipsDat []byte
 
 var (
 	chips []ezp.Chip
@@ -194,7 +191,7 @@ func chipsToJS() js.Value {
 
 func main() {
 	var err error
-	if chips, err = ezp.ParseDat(chipsDat); err != nil {
+	if chips, err = ezp.Chips(); err != nil {
 		panic(err)
 	}
 

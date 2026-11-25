@@ -99,6 +99,9 @@ flash, 24xx and 93xx first run a separate `09` + `01 08` and abort when
 
 ## Chip database (`EZP2023+.Dat`)
 
+This tool does not ship the `.Dat` file: `ezp/chips.json` holds the same
+fields, one chip per line, and `cmd/ezp-dat2json` converts a `.Dat` to it.
+
 949 records of 68 bytes, little-endian:
 
 | Offset | Field |
